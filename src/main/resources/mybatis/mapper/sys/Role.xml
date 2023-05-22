@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="amazon10.sys.domain.Role">
+    <resultMap id="get-Role-result" type="Role">
+        <id property="id" column="ID"/>
+        <!-- 角色名-->
+        <result property="name" column="name"/>
+        <!-- 角色编码-->
+        <result property="code" column="code"/>
+        <!-- 备注-->
+        <result property="note" column="note"/>
+        <!-- 创建时间 -->
+        <result property="createDate" column="CREATE_DATE"/>
+        <!-- 创建人 -->
+        <result property="creator" column="CREATOR"/>
+        <!-- 修改时间 -->
+        <result property="updateDate" column="UPDATE_DATE"/>
+        <!-- 修改人 -->
+        <result property="updator" column="UPDATOR"/>
+        <!-- 软删除标识 -->
+        <result property="valid" column="VALID"/>
+    </resultMap>
+    <sql id="Role_Base_Column_List">
+        ID,
+        <!-- 角色名-->
+        name,
+        <!-- 角色编码-->
+        code,
+        <!-- 备注-->
+        note,
+        <!-- 创建时间 -->
+        CREATE_DATE,
+        <!-- 创建人 -->
+        CREATOR,
+        <!-- 更新时间 -->
+        UPDATE_DATE,
+        <!-- 更新人 -->
+        UPDATOR,
+        <!-- 软删除标识 -->
+        VALID
+    </sql>
+    <select id="Role_get" resultMap="get-Role-result">
+        SELECT
+        <include refid="Role_Base_Column_List"/>
+        FROM
+        sys_role
+        where
+        ID = #{id}
+    </select>
+
+    <select id="Role_list" resultMap="get-Role-result">
+        SELECT
+        <include refid="Role_Base_Column_List"/>
+        FROM
+        sys_role
+        <include refid="common.Select_Where_Clause"/>
+    </select>
+
+    <select id="Role_list_by_user" resultMap="get-Role-result" parameterType="long">
+        SELECT
+        <include refid="Role_Base_Column_List"/>
+        FROM
+        sys_role
+        where valid='1' and id in (select role_id from sys_r_user_role where valid='1' and user_id=#{value})
+    </select>
+
+    <insert id="Role_insert" parameterType="Role">
+        INSERT INTO sys_role(
+        name,
+        code,
+        note,
+        CREATE_DATE,
+        CREATOR,
+        valid)values(
+        #{name},
+        #{code},
+        #{note},
+        NOW(),
+        #{creator},
+        1)
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            SELECT LAST_INSERT_ID() AS id;
+        </selectKey>
+    </insert>
+    <insert id="Role_insert_by_user" parameterType="map">
+        INSERT INTO sys_r_user_role(
+        user_id,
+        role_id,
+        CREATE_DATE,
+        CREATOR,
+        valid
+        ) VALUES (
+        #{userId},
+        #{roleId},
+        NOW(),
+        #{creator},
+        1
+        )
+    </insert>
+    <update id="Role_update" parameterType="Role">
+    	UPDATE sys_role
+			set
+          		name = #{name},
+          		code = #{code},
+          		note = #{note},
+			UPDATE_DATE = now()
+			,UPDATOR = #{updator}
+    	WHERE 
+			ID = #{id}
+    </update>
+    <update id="Role_logicDelete" parameterType="Role">
+		UPDATE sys_role
+		set
+		VALID=0
+		,UPDATE_DATE = now()
+		WHERE
+		ID = #{id}
+	</update>
+    <delete id="Role_delete" parameterType="Role">
+    	DELETE FROM sys_role
+		WHERE 
+		ID = #{id}
+  	</delete>
+    <delete id="Role_delete_by_user" parameterType="long">
+        DELETE FROM sys_r_user_role
+        where user_id=#{userId}
+    </delete>
+</mapper>
